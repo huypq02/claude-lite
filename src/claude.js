@@ -1,42 +1,23 @@
-const { spawn } = require("node:child_process");
+import { execa } from "execa";
 
-function runClaude(prompt, options = {}) {
-    const claudeCommand = options.command || "claude";
-    const args = options.args || [];
-
-    return new Promise((resolve, reject) => {
-        const child = spawn(claudeCommand, args, {
-            stdio: ["pipe", "pipe", "pipe"],
-            shell: process.platform === "win32",
+// CRITICAL: pass args as ARRAY, never as a shell string.
+// execa("claude", [...]) does NOT use a shell, so prompts with quotes,
+// backticks, $VARS are safe.
+export async function callClaude(prompt, { timeoutMs = 60_000 } = {}) {
+    try {
+        const { stdout } = await execa("claude", ["-p", prompt], {
+            timeout: timeoutMs,
         });
-
-        let stdout = "";
-        let stderr = "";
-
-        child.stdout.on("data", (chunk) => {
-            stdout += chunk.toString();
-        });
-
-        child.stderr.on("data", (chunk) => {
-            stderr += chunk.toString();
-        });
-
-        child.on("error", reject);
-
-        child.on("close", (code) => {
-            if (code === 0) {
-                resolve({ stdout, stderr, code });
-                return;
-            }
-
-            reject(new Error(stderr || `claude exited with code ${code}`));
-        });
-
-        child.stdin.write(String(prompt));
-        child.stdin.end();
-    });
+        return stdout.trim();
+    } catch (err) {
+        if (err.code === "ENOENT") {
+            throw new Error(
+                "Claude CLI not found. Install it from https://docs.claude.com/claude-code"
+            );
+        }
+        if (err.timedOut) {
+            throw new Error(`Claude timed out after ${timeoutMs / 1000}s.`);
+        }
+        throw new Error(`Claude failed: ${err.shortMessage || err.message}`);
+    }
 }
-
-module.exports = {
-    runClaude,
-};

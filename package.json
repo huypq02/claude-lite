@@ -1,21 +1,12 @@
 {
   "name": "claude-lite",
   "version": "0.1.0",
-  "description": "Minimal CLI wrapper around the Claude CLI.",
-  "main": "src/repl.js",
-  "bin": {
-    "claude-lite": "bin/cli.js"
-  },
-  "scripts": {
-    "start": "node bin/cli.js"
-  },
-  "keywords": [
-    "claude",
-    "cli",
-    "repl"
-  ],
-  "license": "MIT",
+  "type": "module",
+  "bin": { "claude-lite": "./bin/cli.js" },
+  "engines": { "node": ">=18" },
   "dependencies": {
-    "chalk": "^4.1.2"
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "execa": "^9.5.0"
   }
 }

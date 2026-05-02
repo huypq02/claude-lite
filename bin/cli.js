@@ -1,12 +1,17 @@
 #!/usr/bin/env node
+import { Command } from "commander";
+import { startRepl } from "../src/repl.js";
 
-const { startRepl } = require("../src/repl");
+const program = new Command();
+program
+    .name("claude-lite")
+    .description("Interactive Claude chat with automatic prompt optimization")
+    .option("--debug", "show original vs optimized prompt each turn", false)
+    .action(async (opts) => {
+        await startRepl({ debug: opts.debug });
+    });
 
-async function main() {
-    await startRepl();
-}
-
-main().catch((error) => {
-    console.error(error instanceof Error ? error.message : String(error));
-    process.exitCode = 1;
+program.parseAsync().catch((err) => {
+    console.error(err.message);
+    process.exit(1);
 });
